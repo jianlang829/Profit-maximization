@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>README: 线性规划求解的朴素思考</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background-color: #fafafa;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 15px;
+        }
+        h2 {
+            margin-top: 30px;
+            border-left: 4px solid #e74c3c;
+            padding-left: 10px;
+        }
+        pre {
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        code {
+            background-color: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', Courier, monospace;
+        }
+        .quote {
+            background-color: #f8f9fa;
+            border-left: 4px solid #6c757d;
+            padding: 15px;
+            margin: 20px 0;
+            font-style: italic;
+        }
+        .conclusion {
+            background-color: #e8f5e9;
+            border: 1px solid #4caf50;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 30px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧠 一次关于线性规划的朴素思考与验证</h1>
+    <p>作者：jianlang</p>
+    <p>日期：2025年9月10日</p>
+
+    <div class="quote">
+        “我不相信‘原料用尽就是最优’的假设，也不确定‘最优解一定在交点’——所以我决定自己写个程序，把所有可能的解都算一遍。（我开始不知道这是种什么方法，但觉得这样算出来好理解更对）”
+    </div>
+
+    <h2>🎯 项目背景</h2>
+    <p>这是一个关于酒厂生产优化的简单线性规划问题：</p>
+    <ul>
+        <li>生产两种酒：低端酒（利润70元/瓶）和高端酒（利润120元/瓶）</li>
+        <li>受两种原料限制：高纯度原料≤200kg，低纯度原料≤360kg</li>
+        <li>目标：找到使总利润最大的生产组合 (x, y)</li>
+    </ul>
+
+    <h2>🤔 我的思考过程</h2>
+    <p>面对这个问题，我首先对两种“标准解法”产生了质疑：</p>
+    <ol>
+        <li><strong>找交点法</strong>：为什么最优解一定在交点上？万一在边上或者框里面呢？</li>
+        <li><strong>原料用尽假设</strong>：把原料用光就一定最赚钱吗？万一某种酒利润低还耗料多呢？</li>
+    </ol>
+    <p>于是，我决定采用最朴素、最可靠的方法 —— <strong>暴力枚举所有可能的整数解</strong>（当然后面知道这其实就是枚举）。</p>
+
+    <h2>⚙️ 我的算法核心</h2>
+    <p>根据约束条件，我推导出 <code>x</code> 的取值范围是 <code>0 ≤ x ≤ 38</code>（当然算错了，正确应该是0 ≤ x ≤ 45）。然后对每个 <code>x</code>，计算出满足约束的所有 <code>y</code>，并记录找出最大利润。</p>
+
+    <pre>
+# 原始思考伪代码（来自 lrzd.txt）
+条件：x≥0, y≥0
+4x+7y≤200
+8x+4y≤360
+推导：0<=x<=38.5
+目标：w=70x+120y 最大
+
+算法：
+for x in range(0, 38):
+    # 对每个x，计算y的最大可行值
+    y = min( (200-4*x)//7, (360-8*x)//4 )
+    if y < 0: y = 0
+    w = 70*x + 120*y
+    # 比较并记录最大利润
+    </pre>
+
+    <h2>✅ 验证结果 （代码在main.py）</h2>
+    <p>通过暴力枚举，我得到了全局最优解：</p>
+    <div class="conclusion">
+        <strong>生产 43 瓶低端酒 + 4 瓶高端酒 = 最大利润 3490 元</strong>
+    </div>
+    <p>有趣的是，这个结果与“找交点法”的结果完全一致。这让我开始怀疑的相信了线性规划理论中“最优解在顶点”的定理 —— 后来知道它不是靠“相信”，而是靠<strong>亲手验证</strong>得来的。</p>
+
+    <h2>💡 项目意义</h2>
+    <p>这个小项目展示了：</p>
+    <ul>
+        <li>在数学和运筹学中，保持质疑精神的重要性。</li>
+        <li>当理论让你困惑时，编程和计算是绝佳的验证工具。</li>
+        <li>“笨办法”（暴力枚举）在小规模问题中往往是最可靠的。</li>
+        <li>理论和实践相互验证，才能建立真正的理解。</li>
+    </ul>
+
+    <h2>🚀 后续计划</h2>
+    <ul>
+        <li>将伪代码完善为可运行的 Python 脚本。</li>
+        <li>添加可视化功能，绘制可行域和利润曲面。</li>
+        <li>扩展到更多变量，对比枚举法与单纯形法的效率。</li>
+    </ul>
+
+    <footer>
+        <p>—— 一次小小的思考，一次大大的收获 ——</p>
+        <p>欢迎提交 Issue 或 PR，一起探讨线性规划的奥秘！</p>
+    </footer>
+</body>
+</html>

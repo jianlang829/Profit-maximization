@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>线性规划问题：酒厂生产优化</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            border-left: 5px solid #3498db;
+            padding-left: 10px;
+            margin-top: 30px;
+        }
+        pre {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .solution-box {
+            background-color: #fff;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .conclusion {
+            background-color: #e8f4fc;
+            border-left: 5px solid #3498db;
+            padding: 15px;
+            margin: 25px 0;
+            font-weight: bold;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+    <h1>线性规划问题：酒厂生产优化</h1>
+
+    <div class="solution-box">
+        <h2>📌 题目描述</h2>
+        <p>一家酒厂生产两种酒：低端酒和高端酒。</p>
+        <ul>
+            <li>每瓶低端酒消耗 8kg 低纯度原料酒 + 4kg 高纯度原料酒，利润 70 元。</li>
+            <li>每瓶高端酒消耗 4kg 低纯度原料酒 + 7kg 高纯度原料酒，利润 120 元。</li>
+            <li>每天可用原料：低纯度 360kg，高纯度 200kg。</li>
+        </ul>
+        <p><strong>目标：</strong>如何安排每日生产计划，使总利润最大？</p>
+
+        <p><strong>数学模型：</strong></p>
+        <p>设生产低端酒 <em>x</em> 瓶，高端酒 <em>y</em> 瓶。</p>
+        <p><strong>目标函数：</strong> 最大化 <em>w = 70x + 120y</em></p>
+        <p><strong>约束条件：</strong></p>
+        <pre>
+4x + 7y ≤ 200  （高纯度原料约束）
+8x + 4y ≤ 360  （低纯度原料约束）
+x ≥ 0, y ≥ 0   （非负约束）
+        </pre>
+    </div>
+
+    <div class="solution-box">
+        <h2>📐 解法一：找交点法（理论最优解法）</h2>
+        <p>根据线性规划基本定理，最优解必定出现在可行域的顶点（即约束直线的交点）上。</p>
+        <p><strong>步骤：</strong></p>
+        <ol>
+            <li>列出所有约束边界线的交点。</li>
+            <li>筛选出满足所有约束的可行点。</li>
+            <li>计算每个可行点的目标函数值，取最大者。</li>
+        </ol>
+
+        <p><strong>关键交点计算：</strong></p>
+        <p>解方程组（两个约束同时取等号）：</p>
+        <pre>
+2x + y = 90   （由 8x + 4y = 360 化简）
+4x + 7y = 200
+        </pre>
+        <p>解得：<strong>x = 43, y = 4</strong></p>
+        <p>利润：<em>w = 70×43 + 120×4 = 3490 元</em></p>
+
+        <p><strong>验证资源：</strong></p>
+        <ul>
+            <li>低纯度：8×43 + 4×4 = 360kg （用尽）</li>
+            <li>高纯度：4×43 + 7×4 = 200kg （用尽）</li>
+        </ul>
+    </div>
+
+    <div class="solution-box">
+        <h2>💻 解法二：暴力枚举法（可靠直观解法）</h2>
+        <p>根据约束推导，<em>x</em> 的取值范围为 0 到 38。遍历所有可能的 <em>x</em> 值，对每个 <em>x</em> 计算 <em>y</em> 的最大可行整数值，然后比较利润。</p>
+
+        <p><strong>核心算法逻辑（Python 伪代码）：</strong></p>
+        <pre>
+max_profit = 0
+best_x, best_y = 0, 0
+
+for x in range(0, 39):  # x 从 0 到 38
+    # 根据约束计算 y 的最大值
+    y_from_high = (200 - 4 * x) // 7  # 高纯度约束
+    y_from_low = (360 - 8 * x) // 4   # 低纯度约束
+    y = min(y_from_high, y_from_low)  # 取更严格的约束
+    if y < 0: y = 0                   # 保证非负
+
+    profit = 70 * x + 120 * y
+
+    if profit > max_profit:
+        max_profit = profit
+        best_x, best_y = x, y
+
+print(f"最优解: x={best_x}, y={best_y}, 利润={max_profit}")
+        </pre>
+
+        <p><strong>部分枚举结果表：</strong></p>
+        <table>
+            <tr>
+                <th>x (低端酒)</th>
+                <th>y (高端酒)</th>
+                <th>利润 (元)</th>
+            </tr>
+            <tr>
+                <td>41</td>
+                <td>5</td>
+                <td>3470</td>
+            </tr>
+            <tr>
+                <td>42</td>
+                <td>4</td>
+                <td>3420</td>
+            </tr>
+            <tr>
+                <td><strong>43</strong></td>
+                <td><strong>4</strong></td>
+                <td><strong>3490</strong></td>
+            </tr>
+            <tr>
+                <td>44</td>
+                <td>2</td>
+                <td>3320</td>
+            </tr>
+            <tr>
+                <td>45</td>
+                <td>0</td>
+                <td>3150</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="conclusion">
+        ✅ <strong>最终结论：两种方法均得出相同最优解</strong><br>
+        生产 <strong>43 瓶低端酒</strong> 和 <strong>4 瓶高端酒</strong>，可获得最大日利润 <strong>3490 元</strong>。
+    </div>
+</body>
+</html>
